@@ -1,0 +1,331 @@
+<section id="{{ section.id }}" class="mh-hero" style="--mh-height: {{ section.settings.section_height }}; --mh-height-mobile: {{ section.settings.section_height_mobile }};">
+  <style>
+
+    /*  MH Hero Section Base Styles */
+    #{{ section.id }}.mh-hero {
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Grid Layout for Hero Columns */
+
+    #{{ section.id }} .mh-grid {
+      display: grid;
+      grid-template-columns: repeat({{ section.blocks.size }}, 1fr);
+      gap: 8px;
+      height: var(--mh-height);
+    }
+
+    /* Individual Column Styling */
+
+    #{{ section.id }} .mh-column {
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    /* Media & Video Styling */
+
+    #{{ section.id }} .mh-media,
+    #{{ section.id }} .mh-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    #{{ section.id }} .mh-video {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* Overlay Container */
+
+    #{{ section.id }} .mh-overlay-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      pointer-events: none;
+      padding: 1rem;
+      z-index: 2;
+    }
+
+    #{{ section.id }} .mh-overlay {
+      pointer-events: auto;
+      max-width: 90%;
+      color: white;
+      text-align: center;
+    }
+
+    #{{ section.id }} .mh-overlay h2 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
+    }
+
+    #{{ section.id }} .mh-overlay p {
+      margin: 0 0 1rem;
+    }
+
+    /* Buttons inside Overlay */
+
+    #{{ section.id }} .mh-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    #{{ section.id }} .mh-button {
+      padding: 0.6rem 1.2rem;
+      background: black;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+
+    /* Logo Styling */
+
+    #{{ section.id }} .mh-logo {
+      max-width: 120px;
+      height: auto;
+    }
+
+    /* Alignment helpers */
+    .align-top { align-items: flex-start; }
+    .align-center { align-items: center; }
+    .align-bottom { align-items: flex-end; }
+    .justify-left { justify-content: flex-start; }
+    .justify-center { justify-content: center; }
+    .justify-right { justify-content: flex-end; }
+
+    /* Responsive / Mobile Overrides */
+
+    @media (max-width: 767px) {
+      #{{ section.id }} .mh-grid {
+        grid-template-columns: 1fr !important;
+        position: relative;
+        height: var(--mh-height-mobile, 40vh);
+      }
+
+      #{{ section.id }} .mh-media,
+      #{{ section.id }} .mh-video,
+      #{{ section.id }} .mh-column {
+        height: var(--mh-height-mobile, 40vh);
+      }
+
+      /* Mobile Carousel */
+      #{{ section.id }} .mh-column {
+        position: absolute;
+        inset: 0;
+        transition: opacity 1s ease;
+        opacity: 0;
+        z-index: 0;
+      }
+
+      #{{ section.id }} .mh-column.active {
+        opacity: 1;
+        z-index: 1;
+      }
+    }
+  </style>
+
+
+<div class="mh-grid">
+    
+  <!-- Loop through each block in the current section -->
+  {% for block in section.blocks %}
+  <div class="mh-column" data-block-id="{{ block.id }}">
+    
+    <!-- Assign block settings to variables for easier reference -->
+    {% assign mobile_img = block.settings.mobile_image %}
+    {% assign desktop_img = block.settings.desktop_image %}
+    {% assign video_url = block.settings.video_url | strip %} <!-- Remove whitespace from video URL -->
+
+    <!-- If a video URL is provided, display a video element -->
+    {% if video_url != blank %}
+      <video class="mh-video" autoplay muted loop playsinline preload="metadata" poster="{{ desktop_img | image_url: width: 800 }}">
+        <source src="{{ video_url }}" type="video/mp4">
+      </video>
+
+    <!-- Else, if a desktop image is provided, display a responsive image -->
+    {% elsif desktop_img != blank %}
+      <picture>
+        <!-- Use mobile image for screens <= 767px -->
+        {% if mobile_img != blank %}
+          <source media="(max-width:767px)" srcset="{{ mobile_img | image_url: width: 900 }}">
+        {% endif %}
+        <!-- Default image for larger screens -->
+        <img class="mh-media" src="{{ desktop_img | image_url: width: 1800 }}" width="{{ desktop_img.width }}" height="{{ desktop_img.height }}" alt="{{ block.settings.alt | escape }}">
+      </picture>
+    {% endif %}
+
+    <!-- Overlay alignment settings -->
+    {% assign v = block.settings.overlay_v_align_desktop %}
+    {% assign h = block.settings.overlay_h_align_desktop %}
+
+    <!-- Overlay wrapper for positioning content -->
+    <div class="mh-overlay-wrap align-{{ v }} justify-{{ h }}">
+      <div class="mh-overlay">
+
+        <!-- Show logo if enabled, otherwise show heading text -->
+        {% if block.settings.show_logo and block.settings.logo_image != blank %}
+          <img class="mh-logo" src="{{ block.settings.logo_image | image_url: width: 450 }}" width="{{ block.settings.logo_image.width }}" height="{{block.settings.logo_image.height}}" alt="{{ block.settings.alt | escape }}">
+        {% elsif block.settings.heading_text != blank %}
+          <h2>{{ block.settings.heading_text }}</h2>
+        {% endif %}
+
+        <!-- Show subheading if provided -->
+        {% if block.settings.subheading != blank %}
+          <p>{{ block.settings.subheading }}</p>
+        {% endif %}
+
+        <!-- Render buttons if text is provided -->
+        <div class="mh-buttons">
+          {% if block.settings.button_1_text != blank %}
+            <a class="mh-button" href="{{ block.settings.button_1_link }}">{{ block.settings.button_1_text }}</a>
+          {% endif %}
+          {% if block.settings.button_2_text != blank %}
+            <a class="mh-button" href="{{ block.settings.button_2_link }}">{{ block.settings.button_2_text }}</a>
+          {% endif %}
+        </div>
+
+      </div> <!-- /.mh-overlay -->
+    </div> <!-- /.mh-overlay-wrap -->
+
+  </div> <!-- /.mh-column -->
+  {% endfor %}
+</div> <!-- /.mh-grid -->
+
+
+{% schema %}
+{
+  "name": "Multiple Hero Images",
+  "settings": [
+    { "type": "text", "id": "section_height", "label": "Desktop height", "default": "60vh" },
+    { "type": "text", "id": "section_height_mobile", "label": "Mobile height", "default": "40vh" },
+  ],
+  "blocks": [
+    {
+      "type": "media_block",
+      "name": "Media block",
+      "limit": 3,
+      "settings": [
+        { "type": "image_picker", "id": "desktop_image", "label": "Desktop image" },
+        { "type": "image_picker", "id": "mobile_image", "label": "Mobile image" },
+        { "type": "text", "id": "video_url", "label": "Video URL (MP4)" },
+        { "type": "checkbox", "id": "show_logo", "label": "Use logo instead of heading?", "default": false },
+        { "type": "image_picker", "id": "logo_image", "label": "Logo image" },
+        { "type": "text", "id": "heading_text", "label": "Heading" },
+        { "type": "text", "id": "subheading", "label": "Subheading" },
+        { "type": "text", "id": "button_1_text", "label": "Button 1 text" },
+        { "type": "url", "id": "button_1_link", "label": "Button 1 link" },
+        { "type": "text", "id": "button_2_text", "label": "Button 2 text" },
+        { "type": "url", "id": "button_2_link", "label": "Button 2 link" },
+        { "type": "text", "id": "alt", "label": "Alt text" },
+        {
+          "type": "select",
+          "id": "overlay_v_align_desktop",
+          "label": "Vertical alignment",
+          "options": [
+            { "value": "top", "label": "Top" },
+            { "value": "center", "label": "Center" },
+            { "value": "bottom", "label": "Bottom" }
+          ],
+          "default": "center"
+        },
+        {
+          "type": "select",
+          "id": "overlay_h_align_desktop",
+          "label": "Horizontal alignment",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "center"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Multiple Hero Images", "category": "Hero" }
+  ]
+}
+
+{% endschema %}
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    
+    const section = document.getElementById('{{ section.id }}');
+    const columns = section.querySelectorAll('.mh-column');
+
+    // Track the index of active slide and Time interval for auto-sliding (ms)
+    let currentIndex = 0;
+    const intervalTime = 4000;
+
+    // Reference to the interval timer for automatic sliding
+    let carouselInterval = null;
+
+    // Timeout reference for throttling window resize events
+    let resizeTimeout = null;
+
+    // Function to show a specific slide based on its index
+    function showSlide(index) {
+      columns.forEach((col, i) => {
+        // Add 'active' class only to the current slide, remove from others
+        col.classList.toggle('active', i === index);
+      });
+    }
+
+    // Function to move to the next slide
+    function nextSlide() {
+      // Increment the current index, looping back to 0 at the end
+      currentIndex = (currentIndex + 1) % columns.length;
+      showSlide(currentIndex);
+    }
+
+    // Initialize carousel behavior for mobile view
+    function initMobileCarousel() {
+      // Clear any previous interval to prevent multiple timers running
+      if (carouselInterval) {
+        clearInterval(carouselInterval);
+        carouselInterval = null;
+      }
+
+      if (window.innerWidth <= 767) {
+        // For mobile devices, hide all slides initially
+        columns.forEach(col => col.classList.remove('active'));
+
+        // Show the first slide
+        showSlide(currentIndex);
+
+        // Set up automatic slide rotation every intervalTime
+        carouselInterval = setInterval(nextSlide, intervalTime);
+      } else {
+        // For desktop, show all slides simultaneously
+        columns.forEach(col => {
+          col.classList.add('active');
+          // Reset any inline styles from mobile carousel
+          col.style.opacity = '';
+          col.style.position = '';
+        });
+      }
+    }
+
+    // Initialize carousel on page load
+    initMobileCarousel();
+
+    // Reinitialize carousel on window resize with throttling
+    window.addEventListener('resize', () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+
+      // Wait X seconds after resizing stops before reinitializing
+      resizeTimeout = setTimeout(() => {
+        initMobileCarousel();
+      }, intervalTime);
+    });
+  });
+</script>
