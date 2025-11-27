@@ -17,5 +17,6 @@ Delivered Functionalities
 - Basic Automatic Scrolling Carousel
 
 Issues
-.When switching between desktop and mobile view on the shopify site viewer, The media can freeze when on mobile.
+
+When switching between desktop and mobile view on the shopify site viewer, The media can freeze when on mobile.
 However, when refreshing the page via the home button etc, it runs as normal.
